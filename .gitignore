@@ -1,0 +1,15 @@
+# Arquivos gerados pela síntese
+impl/
+sim/sim.out
+sim/dump.vcd
+
+# Gowin EDA
+*.lic
+*.log
+*.rpt
+*.html
+
+# Editor
+.vscode/
+*.swp
+*~
