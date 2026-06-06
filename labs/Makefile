@@ -1,21 +1,19 @@
 # ─────────────────────────────────────────────────────────────
 #  Makefile — Tang Nano 20K
-#  Suporta dois fluxos: Gowin EDA (proprietário) e Open Source
+#  Uso: make <target> LAB=00_blink
 # ─────────────────────────────────────────────────────────────
 
-# Nome do módulo top e do projeto
-TOP    = top
-OUTPUT = $(TOP)
+LAB    ?= 00_blink
+TOP    ?= top
+OUTPUT  = $(TOP)
 
-# Device — Tang Nano 20K
 DEVICE = GW2AR-LV18QN88C8/I7
 FAMILY = GW2A-18C
 
-# Arquivos fonte (adicione mais com espaço)
-SRCS = src/$(TOP).v
+SRCS   = $(LAB)/$(TOP).v
+TBSRC  = $(LAB)/sim/$(TOP)_tb.v
 
 # ── Gowin EDA — variáveis de ambiente (Arch Linux + Wayland) ──
-# Ver docs/troubleshooting.md para explicação
 GOWIN_ENV = QT_PLUGIN_PATH=/opt/gowin-eda-edu-ide/plugins/qt \
             LD_LIBRARY_PATH=/opt/gowin-eda-edu-ide/lib \
             QT_QPA_PLATFORM=xcb \
@@ -26,20 +24,19 @@ GOWIN_ENV = QT_PLUGIN_PATH=/opt/gowin-eda-edu-ide/plugins/qt \
 #  SIMULAÇÃO
 # ─────────────────────────────────────────────────────────────
 
-sim: sim/sim.out
-	vvp sim/sim.out
-	@[ -f sim/dump.vcd ] && gtkwave sim/dump.vcd & || echo "Nenhum dump.vcd gerado"
+sim: $(LAB)/sim/sim.out
+	vvp $(LAB)/sim/sim.out
+	@[ -f $(LAB)/sim/dump.vcd ] && gtkwave $(LAB)/sim/dump.vcd & || echo "Nenhum dump.vcd gerado"
 
-sim/sim.out: $(SRCS) sim/$(TOP)_tb.v
-	@mkdir -p sim
-	iverilog -o sim/sim.out $(SRCS) sim/$(TOP)_tb.v
+$(LAB)/sim/sim.out: $(SRCS) $(TBSRC)
+	iverilog -o $(LAB)/sim/sim.out $(SRCS) $(TBSRC)
 
 # ─────────────────────────────────────────────────────────────
 #  FLUXO OPEN SOURCE: yosys → nextpnr → gowin_pack
 # ─────────────────────────────────────────────────────────────
 
-build-oss: impl/$(OUTPUT).fs
-	@echo "✓ Bitstream gerado: impl/$(OUTPUT).fs"
+build: impl/$(OUTPUT).fs
+	@echo "✓ Bitstream: impl/$(OUTPUT).fs"
 
 impl/:
 	mkdir -p impl
@@ -59,40 +56,48 @@ impl/$(OUTPUT).fs: impl/$(OUTPUT).pnr.json
 	gowin_pack -d $(FAMILY) -o impl/$(OUTPUT).fs impl/$(OUTPUT).pnr.json
 
 # ─────────────────────────────────────────────────────────────
-#  FLUXO GOWIN EDA: gw_sh (síntese + P&R + bitstream)
+#  FLUXO GOWIN EDA
 # ─────────────────────────────────────────────────────────────
 
 build-gowin:
-	$(GOWIN_ENV) gw_sh -run projeto.tcl
+	echo "source projeto.tcl" | $(GOWIN_ENV) LAB=$(LAB) gw_sh
 
 # ─────────────────────────────────────────────────────────────
 #  GRAVAÇÃO
 # ─────────────────────────────────────────────────────────────
 
-# Fluxo open source — SRAM (volátil, para testes)
-flash-oss: impl/$(OUTPUT).fs
+flash: impl/$(OUTPUT).fs
 	openFPGALoader -b tangnano20k impl/$(OUTPUT).fs
 
-# Fluxo Gowin — SRAM (volátil, para testes)
-flash: impl/pnr/$(OUTPUT).fs
+flash-gowin: impl/pnr/$(OUTPUT).fs
 	openFPGALoader -b tangnano20k impl/pnr/$(OUTPUT).fs
 
-# Flash persistente (não desgaste desnecessariamente)
-flash-persistent: impl/$(OUTPUT).fs
+flash-persistent:
 	openFPGALoader -b tangnano20k --write-flash impl/$(OUTPUT).fs
-
-flash-gowin-persistent: impl/pnr/$(OUTPUT).fs
-	openFPGALoader -b tangnano20k --write-flash impl/pnr/$(OUTPUT).fs
 
 # ─────────────────────────────────────────────────────────────
 #  UTILITÁRIOS
 # ─────────────────────────────────────────────────────────────
 
 clean:
-	rm -rf impl/ sim/sim.out sim/dump.vcd
+	rm -rf impl/ $(LAB)/sim/sim.out $(LAB)/sim/dump.vcd
 
-# Detecta a FPGA conectada
 detect:
 	openFPGALoader --detect
 
-.PHONY: sim build-oss build-gowin flash flash-oss flash-persistent flash-gowin-persistent clean detect
+help:
+	@echo "Uso: make <target> LAB=<pasta>"
+	@echo ""
+	@echo "  sim              Simula com iverilog + GTKWave"
+	@echo "  build            Sintetiza com fluxo open source"
+	@echo "  build-gowin      Sintetiza com Gowin EDA"
+	@echo "  flash            Grava (volátil) — open source"
+	@echo "  flash-gowin      Grava (volátil) — Gowin"
+	@echo "  flash-persistent Grava na flash (permanente)"
+	@echo "  clean            Remove arquivos gerados"
+	@echo "  detect           Detecta FPGA conectada"
+	@echo ""
+	@echo "Labs disponíveis:"
+	@ls -d */ 2>/dev/null | grep -v "impl" | sed 's|/||'
+
+.PHONY: sim build-oss build-gowin flash flash-oss flash-persistent clean detect help

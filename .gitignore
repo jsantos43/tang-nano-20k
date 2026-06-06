@@ -2,6 +2,7 @@
 impl/
 sim/sim.out
 sim/dump.vcd
+abc.history
 
 # Gowin EDA
 *.lic
