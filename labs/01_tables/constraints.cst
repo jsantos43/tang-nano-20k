@@ -1,0 +1,50 @@
+# constraints.cst — Lab 01: Tabuada
+# Tang Nano 20K (GW2AR-LV18QN88C8/I7)
+
+# ── Clock 27MHz ───────────────────────────────────────────────
+IO_LOC "sysclk" 4;
+IO_PORT "sysclk" IO_TYPE=LVCMOS33;
+CLOCK_LOC "sysclk" BUFG;
+
+# ── Botão onboard S1 (ativo em nível baixo) ───────────────────
+IO_LOC "load_btn" 88;
+IO_PORT "load_btn" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+# ── LEDs onboard (ativos em nível baixo) ──────────────────────
+IO_LOC "done_led" 15;
+IO_PORT "done_led" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+IO_LOC "bcd_h0" 16;
+IO_PORT "bcd_h0" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+IO_LOC "bcd_h1" 17;
+IO_PORT "bcd_h1" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+# ── DIP switches externos (pinos do header — preencher após verificar na placa)
+IO_LOC "table_sel[0]" 31;
+IO_LOC "table_sel[1]" 30;
+IO_LOC "table_sel[2]" 29;
+IO_LOC "table_sel[3]" 26;
+IO_PORT "table_sel[0]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+IO_PORT "table_sel[1]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+IO_PORT "table_sel[2]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+IO_PORT "table_sel[3]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+
+# ── Display 7 segmentos externo (pinos do header — preencher após verificar na placa)
+# dec7seg: segs[6:0] = g,f,e,d,c,b,a
+IO_LOC "seg[0]" 80;  # a
+IO_LOC "seg[1]" 42;  # b
+IO_LOC "seg[2]" 41;  # c
+IO_LOC "seg[3]" 56;  # d
+IO_LOC "seg[4]" 54;  # e
+IO_LOC "seg[5]" 51;  # f
+IO_LOC "seg[6]" 48;  # g
+#IO_LOC "seg_cat" ???; # common anode/cathode
+IO_PORT "seg[0]" IO_TYPE=LVCMOS33;
+IO_PORT "seg[1]" IO_TYPE=LVCMOS33;
+IO_PORT "seg[2]" IO_TYPE=LVCMOS33;
+IO_PORT "seg[3]" IO_TYPE=LVCMOS33;
+IO_PORT "seg[4]" IO_TYPE=LVCMOS33;
+IO_PORT "seg[5]" IO_TYPE=LVCMOS33;
+IO_PORT "seg[6]" IO_TYPE=LVCMOS33;
+#IO_PORT "seg_cat" IO_TYPE=LVCMOS33;

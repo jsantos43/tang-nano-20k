@@ -10,7 +10,7 @@ OUTPUT  = $(TOP)
 DEVICE = GW2AR-LV18QN88C8/I7
 FAMILY = GW2A-18C
 
-SRCS   = $(LAB)/$(TOP).v
+SRCS   = $(wildcard $(LAB)/*.v)
 TBSRC  = $(LAB)/sim/$(TOP)_tb.v
 
 # ── Gowin EDA — variáveis de ambiente (Arch Linux + Wayland) ──
@@ -44,13 +44,13 @@ impl/:
 impl/$(OUTPUT).json: $(SRCS) | impl/
 	yosys -p "synth_gowin -top $(TOP) -json impl/$(OUTPUT).json" $(SRCS)
 
-impl/$(OUTPUT).pnr.json: impl/$(OUTPUT).json constraints.cst
+impl/$(OUTPUT).pnr.json: impl/$(OUTPUT).json $(LAB)/constraints.cst
 	nextpnr-himbaechel \
 		--device $(DEVICE) \
 		--json impl/$(OUTPUT).json \
 		--write impl/$(OUTPUT).pnr.json \
 		--vopt family=$(FAMILY) \
-		--vopt cst=constraints.cst
+		--vopt cst=$(LAB)/constraints.cst
 
 impl/$(OUTPUT).fs: impl/$(OUTPUT).pnr.json
 	gowin_pack -d $(FAMILY) -o impl/$(OUTPUT).fs impl/$(OUTPUT).pnr.json
